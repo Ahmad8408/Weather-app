@@ -1,4 +1,4 @@
-# Frontend Mentor - Weather app
+# Weather app
 
 ![Design preview for the Weather app coding challenge](./preview.jpg)
 
