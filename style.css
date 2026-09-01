@@ -124,7 +124,15 @@ body {
   margin-top: 20px;
 }
 
-/* Container positioning */
+.input-search-result {
+  position: relative;
+  /* display: flex; */
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+}
+
 .input-wrapper {
   position: relative;
   display: flex;
@@ -187,6 +195,37 @@ body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+#searchResults {
+  margin-top: 10px;
+  position: absolute;
+  align-items: center;
+  background-color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  max-height: 200px; 
+  overflow-y: auto; 
+  z-index: 1000; 
+  width: 100%;
+}
+
+/* Style each individual result */
+.search-result-item {
+  padding: 5px 10px;
+  font-family: system-ui, sans-serif;
+  color: #ada9a9;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 5px;
+}
+
+/* Hover and active states */
+.search-result-item:hover {
+  background-color: #4b4d4e;
+  color: #ffffff;
+  padding: 5px 10px;
 }
 
 .weather-info {
