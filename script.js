@@ -37,59 +37,86 @@ searchInput.addEventListener('blur', () => {
   }
 });
 
+searchInput.addEventListener('input', async () => {
 
-const countries = [
-    'Afghanistan',
-    'Albania',
-    'Algeria',
-    'Australia',
-    'Austria',
-    'azerbaijan',
-    'armenia',
-    'andolla',
-    'Pakistan',
-    'Thailand',
-    'United States'
-];
+    const searchText = searchInput.value.trim();
 
-searchInput.addEventListener('input', () => {
-  const searchText = searchInput.value.toLowerCase();
-
-  const results = countries.filter(country =>
-    country.toLowerCase().startsWith(searchText)
-  );
-
-  searchResults.innerHTML = '';
-
-  results.forEach(country => {
-    const countryElement = document.createElement('div');
-    countryElement.textContent = country;
-
-    // 1. Add class for styling
-    countryElement.classList.add('search-result-item');
-
-    // 2. Optional: Click to select country
-    countryElement.addEventListener('click', () => {
-      searchInput.value = country;
-      searchResults.innerHTML = '';
-    });
-
-    searchResults.appendChild(countryElement);
-  });
-
-   document.addEventListener('input', (e) => {
-    if (searchInput.value === '') {
-      searchResults.style.display = 'none';
-    }else {
-      searchResults.style.display = 'block';
-    }
-  });
-
-   document.addEventListener('click', (e) => {
-    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+    // Don't search if the input is empty
+    if (searchText === '') {
+        searchResults.innerHTML = '';
         searchResults.style.display = 'none';
-      }
-  });
+        return;
+    }
+
+    try {
+
+        // Request city data from Open-Meteo
+        const response = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchText)}&count=10&language=en&format=json`
+        );
+
+        const data = await response.json();
+
+        console.log(data);
+
+        // Clear previous search results
+        searchResults.innerHTML = '';
+
+        // Check if locations were found
+        if (!data.results) {
+            searchResults.style.display = 'none';
+            return;
+        }
+
+        // Go through every returned city
+        data.results.forEach(city => {
+
+            const cityElement = document.createElement('div');
+
+            // Display city and country
+            cityElement.textContent = `${city.name}, ${city.country}`;
+
+            // Add your existing CSS class
+            cityElement.classList.add('search-result-item');
+
+            // When a city is clicked
+            cityElement.addEventListener('click', () => {
+
+                searchInput.value = city.name;
+
+                // Hide results
+                searchResults.innerHTML = '';
+                searchResults.style.display = 'none';
+
+                // For now, display coordinates in console
+                console.log('Selected city:', city.name);
+                console.log('Latitude:', city.latitude);
+                console.log('Longitude:', city.longitude);
+
+            });
+
+            searchResults.appendChild(cityElement);
+
+        });
+
+        searchResults.style.display = 'block';
+
+    } catch (error) {
+
+        console.error('Error fetching city data:', error);
+
+    }
+
+});
+
+document.addEventListener('click', (e) => {
+
+    if (
+        !searchInput.contains(e.target) &&
+        !searchResults.contains(e.target)
+    ) {
+        searchResults.style.display = 'none';
+    }
 
 });
 
