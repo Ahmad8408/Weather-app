@@ -413,6 +413,7 @@ body {
   width: 100%;
   display: flex;
   flex-direction: column;
+  align-self: start;
 }
 
 .hourly-card {
@@ -424,6 +425,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;   /* header on top, list fills the rest */
+  max-height: 580px;
 }
 
 
@@ -455,7 +457,22 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between; 
- padding: 30px 0px;                
+ padding: 30px 0px;   
+ max-height: 500px;      /* adjust to taste — this is the scrollable area */
+  overflow-y: auto;
+  padding-right: 4px; 
+   max-height: 500px;
+  overflow-y: auto;
+
+  /* Firefox */
+  scrollbar-width: none;
+
+  /* IE/Edge legacy */
+  -ms-overflow-style: none;            
+}
+
+.hourly-list::-webkit-scrollbar {
+  display: none;
 }
 
 .hourly-item {

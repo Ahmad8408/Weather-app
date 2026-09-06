@@ -94,12 +94,70 @@ function renderDailyForecast(daily) {
     });
 }
 
+let hourlyData = null; // store globally so the dropdown handler can reuse it
+
+function populateDaySelector(dailyTime) {
+    const select = document.querySelector('.day-select');
+    select.innerHTML = '';
+
+    dailyTime.forEach((dateStr) => {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const dayName = new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long' });
+
+        const option = document.createElement('option');
+        option.value = dateStr;       // e.g. "2026-09-06"
+        option.textContent = dayName; // e.g. "Sunday"
+        select.appendChild(option);
+    });
+}
+
+function renderHourlyForecast(hourly, selectedDate) {
+    const container = document.getElementById('hourlyForecastContainer');
+    container.innerHTML = '';
+
+    hourly.time.forEach((isoString, i) => {
+        const [datePart, timePart] = isoString.split('T'); // "2026-09-06", "14:00"
+        if (datePart !== selectedDate) return; // only show hours for the chosen day
+
+        const [hourStr] = timePart.split(':');
+        const hour24 = parseInt(hourStr, 10);
+        const hourLabel = formatHour(hour24); // "3 PM"
+
+        const code = hourly.weather_code[i];
+        const iconSrc = getWeatherIcon(code);   // reuse from daily forecast
+        const iconLabel = getWeatherLabel(code);
+        const temp = Math.round(hourly.temperature_2m[i]);
+
+        const item = document.createElement('div');
+        item.className = 'hourly-item';
+        item.innerHTML = `
+            <div class="hourly-left">
+                <img src="${iconSrc}" alt="${iconLabel}" class="hourly-icon">
+                <span class="hour-time">${hourLabel}</span>
+            </div>
+            <span class="hour-temp">${temp}°</span>
+        `;
+        container.appendChild(item);
+    });
+}
+
+function formatHour(hour24) {
+    const period = hour24 >= 12 ? 'PM' : 'AM';
+    let hour12 = hour24 % 12;
+    if (hour12 === 0) hour12 = 12;
+    return `${hour12} ${period}`;
+}
+
 // Reusable: fetch weather for a given lat/lon and update the DOM
 async function updateWeatherDisplay(latitude, longitude) {
 
     const weatherRes = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`
-    );
+    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation` +
+    `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
+    `&hourly=temperature_2m,weather_code` +
+    `&timezone=auto`
+);
     const weatherData = await weatherRes.json();
 
     document.getElementById('currentLocation').textContent = locationLabel;
@@ -129,6 +187,16 @@ async function updateWeatherDisplay(latitude, longitude) {
         `${weatherData.current.precipitation} mm`;
 
          renderDailyForecast(weatherData.daily);
+
+         hourlyData = weatherData.hourly;
+    populateDaySelector(weatherData.daily.time);
+
+    const daySelect = document.querySelector('.day-select');
+    renderHourlyForecast(hourlyData, daySelect.value); // render first day by default
+
+    daySelect.addEventListener('change', () => {
+        renderHourlyForecast(hourlyData, daySelect.value);
+    });
 }
 
 // Typing in the search box shows the dropdown of matching cities
