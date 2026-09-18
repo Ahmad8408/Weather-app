@@ -507,3 +507,93 @@ body {
   font-weight: 600;
   color: #ffffff;
 }
+
+@media (max-width: 480px) {
+.search-bar {
+ display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.search-button {
+  padding: 15px 120px;
+  background-color: #383ca1;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+  
+  /* Stack main content and sidebar */
+  .weather-info {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Stat cards: 2 per row using grid instead of flex */
+  .weather-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+    height: auto;
+    gap: 35px;
+  }
+
+  .weather-container > div {
+    width: 100%; /* let the grid column control width, not a fixed px */
+  }
+
+  /* Daily forecast: 3 per row, wrapping */
+  .daily-forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 35px;
+  }
+
+  .daily-card {
+    width: 100%; /* let grid control width instead of fixed 75px */
+  }
+
+  /* Hourly panel: full width below, no side-by-side */
+  .hourly-panel {
+    width: 100%;
+    margin-top: 0;
+    padding: 0;
+  }
+
+  .hourly-card {
+    height: auto;
+    max-height: none;
+  }
+
+  .hourly-list {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .hero-banner .date-location-temp {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    margin-top: 35px;
+    gap: 5px;
+    padding: 20px;
+  }
+
+  .temp-container .weather-icon {
+    margin-top: 0;
+    margin-left: 100px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .temp-container .current-temp {
+    font-size: 44px;
+  }
+
+  /* .date-location {
+    margin-top: 40px;
+  } */
+}
