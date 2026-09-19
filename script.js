@@ -17,6 +17,7 @@ document.addEventListener('click', (e) => {
 
 // --- Unit state + conversions ---
 let currentWeatherData = null; // raw API response, always in metric
+let locationLabel = 'London, UK'; //...here
 
 const units = {
   temperature: 'C',   // 'C' or 'F'
@@ -210,6 +211,11 @@ function renderHourlyForecast(hourly, selectedDate) {
   });
 }
 
+// --- Day selector for hourly forecast ---
+document.querySelector('.day-select').addEventListener('change', (e) => {
+  renderHourlyForecast(hourlyData, e.target.value);
+});
+
 function formatHour(hour24) {
   const period = hour24 >= 12 ? 'PM' : 'AM';
   let hour12 = hour24 % 12;
@@ -244,35 +250,39 @@ function renderAllWeather(weatherData) {
 
 // --- Fetch weather for a given lat/lon and render it (single definition, used everywhere) ---
 async function updateWeatherDisplay(latitude, longitude) {
+  try {
+    const weatherRes = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
+      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
+      `&hourly=temperature_2m,weather_code` +
+      `&timezone=auto`
+    );
+    if (!weatherRes.ok) throw new Error(`Weather request failed: ${weatherRes.status}`);
+    const weatherData = await weatherRes.json();
 
-  const weatherRes = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
-    `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation` +
-    `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
-    `&hourly=temperature_2m,weather_code` +
-    `&timezone=auto`
-  );
-  const weatherData = await weatherRes.json();
+    currentWeatherData = weatherData;
 
-  currentWeatherData = weatherData; // keep raw data so unit toggles can re-render without re-fetching
+    document.getElementById('currentLocation').textContent = locationLabel;
 
-  document.getElementById('currentLocation').textContent = locationLabel;
+    const cityDate = new Date(weatherData.current.time);
+    document.getElementById('currentDate').textContent = cityDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
 
-  const cityDate = new Date(weatherData.current.time);
-  document.getElementById('currentDate').textContent = cityDate.toLocaleDateString('en-US', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+    // hero icon from the real weather code
+    const heroIcon = document.querySelector('.weather-icon');
+    heroIcon.src = getWeatherIcon(weatherData.current.weather_code);
+    heroIcon.alt = getWeatherLabel(weatherData.current.weather_code);
 
-  populateDaySelector(weatherData.daily.time);
-  renderAllWeather(weatherData);
-
-  const daySelect = document.querySelector('.day-select');
-  daySelect.addEventListener('change', () => {
-    renderHourlyForecast(hourlyData, daySelect.value);
-  });
+    populateDaySelector(weatherData.daily.time);
+    renderAllWeather(weatherData);
+  } catch (error) {
+    console.error('Error loading weather:', error);
+  }
 }
 
 // --- City search (autocomplete dropdown) ---
@@ -350,3 +360,6 @@ searchButton.addEventListener('click', async () => {
     console.error('Error fetching weather for search:', error);
   }
 });
+
+// --- Initial load: London ---
+updateWeatherDisplay(51.5072, -0.1276);
